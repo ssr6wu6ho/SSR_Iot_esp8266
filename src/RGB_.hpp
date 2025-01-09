@@ -1,5 +1,5 @@
-#include<Adafruit_NeoPixel.h>
-#include"base.h"
+#include <Adafruit_NeoPixel.h>
+#include "base.h"
 Adafruit_NeoPixel _RGB_ = Adafruit_NeoPixel(RGB_NUMBER, RGB_PIN, NEO_GRB + NEO_KHZ800);
 
 void RGB_init();
@@ -9,96 +9,148 @@ uint32_t Wheel(byte WheelPos);
 void RGB_cooperate();
 
 /*------------------------------RGB_conduct----------------*/
-//1:normal 2:breathe
-int update_color=1;
-int update_rainbow=1;
-bool isbreathe_off=false; //0-100
+// 1:normal 2:breathe
+int update_color = 1;
+int update_rainbow = 1;
+bool isbreathe_off = false; // 0-100
 
-void RGB_conduct(){
+unsigned long previousMillis = 0;   // 上一次LED状态改变的时间
+const unsigned long interval = 200; // LED状态改变的间隔时间
+
+void RGB_conduct()
+{
+
   _RGB_.setBrightness(rgb_lumin);
-  if(rgb_type==1){
-    for(int i=0;i<RGB_NUMBER;i++){ 
-      _RGB_.setPixelColor(i,rgb_R,rgb_G,rgb_B);
+  if (rgb_type == 1)
+  {
+    for (int i = 0; i < RGB_NUMBER; i++)
+    {
+      _RGB_.setPixelColor(i, rgb_R, rgb_G, rgb_B);
     }
   }
 
-  else if(rgb_type==2){
-    for(int i=0;i<RGB_NUMBER;i++){ 
-      _RGB_.setPixelColor(i,rgb_R,rgb_G,rgb_B);
+  else if (rgb_type == 2)
+  {
+    for (int i = 0; i < RGB_NUMBER; i++)
+    {
+      _RGB_.setPixelColor(i, rgb_R, rgb_G, rgb_B);
     }
-     if(isbreathe_off){
-      rgb_lumin+=breathe_speed;
-      if(rgb_lumin>=rgm_max_lumin){
-        rgb_lumin=rgm_max_lumin-2;
-        isbreathe_off=!isbreathe_off;
+    if (isbreathe_off)
+    {
+      rgb_lumin += (breathe_speed * 5);
+      if (rgb_lumin >= rgm_max_lumin)
+      {
+        rgb_lumin = rgm_max_lumin - 2;
+        isbreathe_off = !isbreathe_off;
       }
     }
-    else if(!isbreathe_off){
-     rgb_lumin-=breathe_speed;
-      if(rgb_lumin<=1){
-        rgb_lumin=2;
-        isbreathe_off=!isbreathe_off;
+    else if (!isbreathe_off)
+    {
+      rgb_lumin -= (breathe_speed * 5);
+      if (rgb_lumin <= 1)
+      {
+        rgb_lumin = 2;
+        isbreathe_off = !isbreathe_off;
       }
     }
   }
 
-  else if(rgb_type==3){
-    for(int i=0;i<RGB_NUMBER;i++){ 
-      _RGB_.setPixelColor(i,rgb_R,rgb_G,rgb_B);
+  else if (rgb_type == 3)
+  {
+    for (int i = 0; i < RGB_NUMBER; i++)
+    {
+      _RGB_.setPixelColor(i, rgb_R, rgb_G, rgb_B);
     }
-     if(isbreathe_off){
-      rgb_lumin+=(breathe_speed*5);
-      if(rgb_lumin>=rgm_max_lumin){
-        rgb_lumin=rgm_max_lumin-2;
-        isbreathe_off=!isbreathe_off;
+    if (isbreathe_off)
+    {
+      rgb_lumin += (breathe_speed * 5);
+      if (rgb_lumin >= rgm_max_lumin)
+      {
+        rgb_lumin = rgm_max_lumin - 2;
+        isbreathe_off = !isbreathe_off;
       }
     }
-    else if(!isbreathe_off){
-     rgb_lumin-=(breathe_speed*5);
-      if(rgb_lumin<=1){
-        rgb_lumin=2;
-        isbreathe_off=!isbreathe_off;
-        rgb_R=random(0,254);
-        rgb_G=random(0,254);
-        rgb_B=random(0,254);
+    else if (!isbreathe_off)
+    {
+      rgb_lumin -= (breathe_speed * 5);
+      if (rgb_lumin <= 1)
+      {
+        rgb_lumin = 2;
+        isbreathe_off = !isbreathe_off;
+        rgb_R = random(0, 254);
+        rgb_G = random(0, 254);
+        rgb_B = random(0, 254);
       }
+    }
+  }
+
+  else if (rgb_type == 4)
+  {
+    for (int i = 0; i < RGB_NUMBER; i++)
+    {
+      _RGB_.setPixelColor(i, 250, 5, 5);
+    }
+    // 获取当前时间
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - previousMillis >= interval)
+    {                                 // 判断是否达到间隔时间
+      previousMillis = currentMillis; // 更新上一次LED状态改变的时间
+
+      if (isbreathe_off)
+      {
+        _RGB_.setBrightness(rgb_lumin);
+      }
+      else
+      {
+        _RGB_.setBrightness(0);
+      }
+      isbreathe_off = !isbreathe_off;
     }
   }
 
   _RGB_.show();
 }
 
-
 /*----------------------------RGB-----------------------*/
-void RGB_init(){
-  _RGB_.begin(); 
+void RGB_init()
+{
+  _RGB_.begin();
 }
 
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<_RGB_.numPixels(); i++) {
+void colorWipe(uint32_t c, uint8_t wait)
+{
+  for (uint16_t i = 0; i < _RGB_.numPixels(); i++)
+  {
     _RGB_.setPixelColor(i, c);
     _RGB_.show();
     delay(wait);
   }
 }
 
-void rainbow(uint8_t wait) {
+void rainbow(uint8_t wait)
+{
   uint16_t i, j;
-  for(j=0; j<256; j++) {
-    for(i=0; i<_RGB_.numPixels(); i++) {
-      _RGB_.setPixelColor(i, Wheel((i+j) & 255));
+  for (j = 0; j < 256; j++)
+  {
+    for (i = 0; i < _RGB_.numPixels(); i++)
+    {
+      _RGB_.setPixelColor(i, Wheel((i + j) & 255));
     }
     _RGB_.show();
     delay(wait);
   }
 }
 
-uint32_t Wheel(byte WheelPos) {
+uint32_t Wheel(byte WheelPos)
+{
   WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
+  if (WheelPos < 85)
+  {
     return _RGB_.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   }
-  if(WheelPos < 170) {
+  if (WheelPos < 170)
+  {
     WheelPos -= 85;
     return _RGB_.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
